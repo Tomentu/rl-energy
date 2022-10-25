@@ -18,7 +18,7 @@ class Policy:
     def build(self):
         inputs = tf.keras.layers.Input(shape=(self.obs_dim,))
         x = inputs
-        x = tf.keras.layers.Dense(512, activation='relu')(x)
+        x = tf.keras.layers.Dense(256, activation='relu')(x)
         x = tf.keras.layers.Dense(256, activation='relu')(x)
         x = tf.keras.layers.Dense(128, activation='relu')(x)
         x1 = tf.keras.layers.Dense(64, activation='tanh')(x)
@@ -52,7 +52,7 @@ class Value:
         inputs = tf.keras.layers.Input(shape=(self.obs_dim,))
 
         x = inputs
-        x = tf.keras.layers.Dense(512, activation='relu')(x)
+        x = tf.keras.layers.Dense(256, activation='relu')(x)
         x = tf.keras.layers.Dense(256, activation='relu')(x)
         x = tf.keras.layers.Dense(128, activation='relu')(x)
         x = tf.keras.layers.Dense(64, activation='relu')(x)
@@ -82,7 +82,7 @@ class Q:
 
         inputs = tf.keras.layers.Concatenate()([inputs_obs, inputs_act])
         x = inputs
-        x = tf.keras.layers.Dense(512, activation='relu')(x)
+        x = tf.keras.layers.Dense(256, activation='relu')(x)
         x = tf.keras.layers.Dense(256, activation='relu')(x)
         x = tf.keras.layers.Dense(128, activation='relu')(x)
         x = tf.keras.layers.Dense(64, activation='relu')(x)
