@@ -36,11 +36,14 @@ params_agent = {'building_ids':buildings,
                  'observation_spaces':observations_spaces, 
                  'action_spaces':actions_spaces}
 
-obs_dim = 30
+
+
+obs_dim = env.observation_space.shape[0]+2
 act_dim = env.action_space.shape[0]
 sac = SAC(obs_dim,act_dim,id=24)
-sac.load_weights()
+#sac.load_weights()
 sac.set_normal(-74970.45, 224360.34)
+
 #对观察值进行处理
 def obs_init(x):
     #x[:,:1]=12.
@@ -87,11 +90,12 @@ def run_episode(training=False):
 
 
 
-for epoch in range(20000):
+for epoch in range(0):
     reward  = run_episode(training=True)
     #print(sac.sample_replay(30))
     sac.save_weights()
     print(reward)
 
+run_episode(False)
 
 #X = np.array([j[2] for j in sac.replay_buffer])

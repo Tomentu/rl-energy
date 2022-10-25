@@ -156,7 +156,7 @@ class SAC:
         self.reward_normal_mean = reward_mean
         self.reward_normal_std = reward_std
 
-
+    @tf.function
     def select_action(self, obs):
         # 选择动作
         tf.cast(obs,tf.float32)
