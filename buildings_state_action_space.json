@@ -30,7 +30,7 @@
 "electrical_storage_soc": true,
 "net_electricity_consumption": true,
 "carbon_intensity": true},
-"actions":{"cooling_storage": true, "dhw_storage": true, "electrical_storage": true}},
+"actions":{"cooling_storage": true, "dhw_storage": true, "electrical_storage": false}},
 
 "Building_2": {
 "states": {
