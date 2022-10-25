@@ -312,7 +312,7 @@ class SAC:
     def train_step(self):
         if len(self.replay_buffer)<4000:
             return False
-        b_obs, b_act, b_reward, b_next_obs, b_done = self.sample_replay(64)
+        b_obs, b_act, b_reward, b_next_obs, b_done = self.sample_replay(256)
         self.learn(b_obs, b_act, b_reward, b_next_obs, b_done)
         self.update_target_value(self.q_1, self.q_1_target)
         self.update_target_value(self.q_2, self.q_2_target)
