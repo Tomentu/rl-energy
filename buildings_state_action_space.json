@@ -28,7 +28,7 @@
 "cooling_storage_soc": true,
 "dhw_storage_soc": true,
 "electrical_storage_soc": false,
-"net_electricity_consumption": true,
+"net_electricity_consumption": false,
 "carbon_intensity": false},
 "actions":{"cooling_storage": true, "dhw_storage": true, "electrical_storage": false}},
 

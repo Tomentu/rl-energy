@@ -169,7 +169,8 @@ class SAC:
         # 添加到经验池
         reward = reward / self.reward_scale
         reward = (reward-self.reward_normal_mean)/self.reward_normal_std
-
+        obs = (obs-self.obs_normal_mean)/self.obs_normal_std
+        next_obs = (next_obs - self.obs_normal_mean) / self.obs_normal_std
         self.replay_buffer.append((obs, act,reward, next_obs, done))
     def sample_replay(self, batch_size):
         # 从经验池中采样

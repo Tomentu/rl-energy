@@ -115,7 +115,7 @@ class Building:
         Return:
             elec_demand_heating (float): electricity consumption needed for space heating and heating storage
         """
-        action = action*0.5
+        
         # Heating power that could be possible to supply to the storage device to increase its State of Charge once the heating demand of the building has been satisfied
         heat_power_avail = self.dhw_heating_device.get_max_heating_power() - self.sim_results['dhw_demand'][self.time_step]
         
@@ -157,7 +157,7 @@ class Building:
             Return:
                 elec_demand_cooling (float): electricity consumption needed for space cooling and cooling storage
         """
-        action = action*0.6
+    
         # Cooling power that could be possible to supply to the storage device to increase its State of Charge once the heating demand of the building has been satisfied
         cooling_power_avail = self.cooling_device.get_max_cooling_power() - self.sim_results['cooling_demand'][self.time_step]
         
@@ -587,7 +587,7 @@ class EnergyStorage:
         #Discharging
         else:
             if self.max_power_output is not None:
-                energy = max(-self.max_power_output, energy)
+                energy = max(-max_power_output, energy)
             self._soc = max(0, soc_init + energy/self.efficiency)  
             
         if self.capacity is not None:

@@ -1,17 +1,14 @@
 import gym
 from gym.utils import seeding
-import math
 import numpy as np
 import pandas as pd
 import json
 from gym import spaces
 from energy_models import Battery, HeatPump, ElectricHeater, EnergyStorage, Building
 from reward_function import reward_function_sa, reward_function_ma
-
-from tensorflow.python.ops.numpy_ops import np_config
 from pathlib import Path
 gym.logger.set_level(40)
-np_config.enable_numpy_behavior()
+
 # Reference Rule-based controller. Used as a baseline to calculate the costs in CityLearn
 # It requires, at least, the hour of the day as input state
 class RBC_Agent:
@@ -480,7 +477,9 @@ class CityLearn(gym.Env):
 
                 # Adding loads from appliances and subtracting solar generation to the net electrical load of each building
                 building_electric_demand = round(_electric_demand_electrical_storage + _electric_demand_cooling + _electric_demand_dhw + _non_shiftable_load - _solar_generation, 4)
-
+                #print("1234", building_electric_demand)
+                #building_electric_demand = round(np.array(building_electric_demand))
+                #print("1234", building_electric_demand)
                 # Electricity consumed by every building
                 building.current_net_electricity_demand = building_electric_demand
                 self.buildings_net_electricity_demand.append(-building_electric_demand)    
@@ -553,7 +552,7 @@ class CityLearn(gym.Env):
         self.net_electric_consumption_no_pv_no_storage.append(np.float32(electric_demand + elec_generation - elec_consumption_cooling_storage - elec_consumption_dhw_storage-elec_consumption_electrical_storage))
         
         terminal = self._terminal()
-        return (self._get_ob(), np.array(rewards).astype('float32'), terminal, {})
+        return (self._get_ob(), rewards, terminal, {})
     
     def reset_baseline_cost(self):
         self.cost_rbc = None
