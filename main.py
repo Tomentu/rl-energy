@@ -13,7 +13,8 @@ import json
 
 #对观察值进行处理
 def obs_init(x,encoder):
-    return np.hstack(encoder*x)
+    obs = np.array(encoder*x)
+    return np.hstack(obs)
 
 climate_zone = 5
 buildings = ["Building_1"]
@@ -28,7 +29,7 @@ params = {'data_path':Path("data/Climate_Zone_"+str(climate_zone)),
         'carbon_intensity':'carbon_intensity.csv',
         'building_ids':buildings,
         'buildings_states_actions':'buildings_state_action_space.json', 
-        'simulation_period': (0,2000),#8760*1-1
+        'simulation_period': (0,8760*1-1),#8760*1-1
         'cost_function': ['ramping','1-load_factor','average_daily_peak','peak_demand','net_electricity_consumption','carbon_emissions'], 
         'central_agent': False,
         'save_memory': False }
@@ -55,7 +56,7 @@ obs_dim = 34
 
 act_dim = env.action_space.shape[0]
 sac = SAC(obs_dim,act_dim,act_scale=0.5,id=24)
-#sac.load_weights()
+sac.load_weights()
 
 def get_encoder():
     with open('buildings_state_action_space.json') as json_file:
@@ -91,22 +92,35 @@ def init():
     env.reset()
     done = False
     obs_list = []
-    reward = []
+    reward_list = []
     while not done:
         act = env.action_space.sample()
         #print(act)
         obs,reward,done,_ = env.step([act])
-        obs = obs_init(obs,encoder["Building_1"])
+
         for b,o,r in zip(buildings,obs,reward):
+            o = obs_init(o, encoder["Building_1"])
+
+
             obs_list.append(o)
+            reward_list.append(r)
+
     obs_list = np.array(obs_list).astype('float32')
-    print(len(obs_list))
-    return np.mean(obs_list,axis=0),np.std(obs_list,axis=0)
+    reward_list = np.array((reward_list)).astype('float32')
+    print(obs_list.shape)
+    reward_mean = np.mean(reward_list,axis=0)+1e-5
+    reward_std = np.std(reward_list,axis=0)+1e-5
+
+    obs_mean = np.mean(obs_list,axis=0)
+    obs_std = np.std(obs_list,axis=0)+1e-5
+    return reward_mean,reward_std,obs_mean,obs_std
 
 
-obs_mean,obs_std = init()
+r_normal_mean,r_normal_std,normal_mean,normal_std = init()
+print(r_normal_mean,r_normal_std)
+#exit()
+sac.set_normal(r_normal_mean,r_normal_std)
 
-sac.set_normal(-74970.45, 224360.34)
 
 def run_episode(training=False):
     done = False
@@ -149,15 +163,28 @@ def run_episode(training=False):
 
 
 
-for epoch in range(30):
+for epoch in range(1):
     print("epoch{}".format(epoch))
-    reward  = run_episode(training=True)
+    reward  = run_episode(training=False)
     #print(sac.sample_replay(30))
-    sac.save_weights()
+    #sac.save_weights()
     print("")
     print("epoch{},reward{}".format(epoch,reward))
 
-run_episode(False)
-print(sac.sample_replay(3)[3])
+    sim_period = (8000,8500)
+    # Plotting electricity consumption breakdown
+    interval = range(sim_period[0], sim_period[1])
+    plt.figure(figsize=(30,8))
+    #plt.plot(env.net_electric_consumption_no_pv_no_storage[interval])
+    plt.plot(env.net_electric_consumption_no_storage[interval])
+    plt.plot(env.net_electric_consumption[interval], '--')
+    plt.xlabel('time (hours)', fontsize=24)
+    plt.ylabel('kW', fontsize=24)
+    plt.xticks(fontsize= 24)
+    plt.yticks(fontsize= 24)
+    plt.legend([ 'Electricity demand with PV generation and without storage(kW)', 'Electricity demand with PV generation and using RL for storage(kW)'], fontsize=4)
+    plt.show()
+#run_episode(False)
+#print(sac.sample_replay(3)[2])
 
 #X = np.array([j[2] for j in sac.replay_buffer])

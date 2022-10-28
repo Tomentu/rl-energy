@@ -5,10 +5,10 @@ class no_normalization:
     def __init__(self):
         pass
     def __mul__(self, x):
-        return x
+        return np.array([x])
         
     def __rmul__(self, x):
-        return x
+        return np.array([x])
         
 class periodic_normalization:
     def __init__(self, x_max):
@@ -42,17 +42,17 @@ class normalize:
         if self.x_min == self.x_max:
             return 0
         else:
-            return (x - self.x_min)/(self.x_max - self.x_min)
+            return np.array([(x - self.x_min)/(self.x_max - self.x_min)])
     def __rmul__(self, x):
         if self.x_min == self.x_max:
             return 0
         else:
-            return (x - self.x_min)/(self.x_max - self.x_min)
+            return np.array([(x - self.x_min)/(self.x_max - self.x_min)])
         
 class remove_feature:
     def __init__(self):
         pass
     def __mul__(self, x):
-        return None
+        return 0
     def __rmul__(self, x):
         return None

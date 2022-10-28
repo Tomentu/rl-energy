@@ -18,11 +18,11 @@ class Policy:
     def build(self):
         inputs = tf.keras.layers.Input(shape=(self.obs_dim,))
         x = inputs
+        x = tf.keras.layers.Dense(512, activation='relu')(x)
         x = tf.keras.layers.Dense(256, activation='relu')(x)
-        x = tf.keras.layers.Dense(256, activation='relu')(x)
-        x = tf.keras.layers.Dense(128, activation='relu')(x)
-        x1 = tf.keras.layers.Dense(64, activation='tanh')(x)
-        x2 = tf.keras.layers.Dense(64, activation='tanh')(x)
+        x = tf.keras.layers.Dense(64, activation='relu')(x)
+        x1 = tf.keras.layers.Dense(8, activation='relu')(x)
+        x2 = tf.keras.layers.Dense(8, activation='relu')(x)
         plicy_mean = tf.keras.layers.Dense(self.act_dim, activation='linear')(x1)
         log_policy_std = tf.keras.layers.Dense(units=self.act_dim, activation='linear')(x2)
 
@@ -52,7 +52,7 @@ class Value:
         inputs = tf.keras.layers.Input(shape=(self.obs_dim,))
 
         x = inputs
-        x = tf.keras.layers.Dense(256, activation='relu')(x)
+        x = tf.keras.layers.Dense(512, activation='relu')(x)
         x = tf.keras.layers.Dense(256, activation='relu')(x)
         x = tf.keras.layers.Dense(128, activation='relu')(x)
         x = tf.keras.layers.Dense(64, activation='relu')(x)
@@ -82,7 +82,7 @@ class Q:
 
         inputs = tf.keras.layers.Concatenate()([inputs_obs, inputs_act])
         x = inputs
-        x = tf.keras.layers.Dense(256, activation='relu')(x)
+        x = tf.keras.layers.Dense(512, activation='relu')(x)
         x = tf.keras.layers.Dense(256, activation='relu')(x)
         x = tf.keras.layers.Dense(128, activation='relu')(x)
         x = tf.keras.layers.Dense(64, activation='relu')(x)
@@ -118,7 +118,7 @@ class SAC:
 
         self.reward_scale = 5.0
         # 可训练参数
-        self.log_aplha = tf.Variable(0.2, trainable=True, name="log EntropyTemperature")
+        self.log_aplha = tf.Variable(0.2, trainable=True, name="log_aplha")
         self.aplha = tf.Variable(0.2, trainable=True, name="EntropyTemperature")
         self.aplha.assign(tf.exp(self.log_aplha))
         self.ema = tf.train.ExponentialMovingAverage(decay=0.999)
@@ -159,6 +159,7 @@ class SAC:
     @tf.function
     def select_action(self, obs):
         # 选择动作
+        obs = (obs - self.obs_normal_mean) / self.obs_normal_std
         tf.cast(obs,tf.float32)
         obs = tf.expand_dims(obs, axis=0)
         policy_mean, log_policy_std = self.policy(obs)
@@ -167,7 +168,7 @@ class SAC:
 
     def append_raplay(self, obs, act, reward, next_obs, done):
         # 添加到经验池
-        reward = reward / self.reward_scale
+        reward = reward * self.reward_scale
         reward = (reward-self.reward_normal_mean)/self.reward_normal_std
         obs = (obs-self.obs_normal_mean)/self.obs_normal_std
         next_obs = (next_obs - self.obs_normal_mean) / self.obs_normal_std
@@ -302,6 +303,9 @@ class SAC:
         self.q_1_target = tf.keras.models.clone_model(self.q_1)
         self.q_2.load_weights(self.model_path.format("q_2"))
         self.q_2_target = tf.keras.models.clone_model(self.q_2)
+        ckpt = tf.train.Checkpoint(log_aplha=self.aplha)
+        ckpt.read('model/my_checkpoint').assert_consumed()
+        self.aplha.assign(tf.exp(self.log_aplha))
     def save_weights(self):
         # 保存权重
         self.policy.save_weights(self.model_path.format("policy"))
@@ -310,6 +314,8 @@ class SAC:
         self.q_1.save_weights(self.model_path.format("q_1"))
         self.q_2.save_weights(self.model_path.format("q_2"))
 
+        ckpt = tf.train.Checkpoint(log_aplha=self.aplha)
+        path = ckpt.write('model/my_checkpoint')
     def train_step(self):
         if len(self.replay_buffer)<4000:
             return False
